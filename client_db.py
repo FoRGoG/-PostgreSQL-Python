@@ -22,61 +22,61 @@ def create_db_client(conn):
 def add_client(conn, first_name: str=None, last_name: str=None, email: str=None, phone: str=None):
     conn.execute("""
         INSERT INTO base_client(first_name, last_name, email, phone)
-        VALUES(%(first_name)s, %(last_name)s, %(email)s, %(phone)s);
-    """, {'first_name': first_name, 'last_name': last_name, 'email': email, 'phone': phone})
+        VALUES (%s, %s, %s, %s);""", (first_name, last_name, email, phone))
+    print('Client has added successfully!')
 
 
 def add_phone(conn, id_client: str=None, phone_number: str = None):
     conn.execute("""INSERT INTO phone_client(id_client, phone_number)
-        VALUES(%(id_client)s, %(phone_number)s);""", {'id_client': id_client, 'phone_number': phone_number})
+        VALUES(%s, %s);""", (id_client, phone_number))
+    print('Phone has added successfully!')
 
 
-def change_client_fist_name(conn, id_client: str=None, first_name: str=None):
-    conn.execute("""UPDATE base_client SET first_name = %s
-                        WHERE id_client = %s;""", (first_name, id_client))
-
-
-def change_client_last_name(conn, id_client: str=None, last_name: str=None):
-    conn.execute("""UPDATE base_client SET last_name= %s
-                        WHERE id_client = %s;""", (last_name, id_client))
-
-
-def change_client_email(conn, id_client: str=None, email: str=None):
-    conn.execute("""UPDATE base_client SET email= %s
-                        WHERE id_client = %s;""", (email, id_client))
-
-
-def change_client_phone(conn, id_client: str=None, phone: str=None):
-    conn.execute("""UPDATE base_client SET phone= %s
-                        WHERE id_client = %s;""", (phone, id_client))
+def change_client(conn, id_client, first_name: str=None, last_name: str=None, email: str=None, phone: str=None):
+    conn.execute("""
+        UPDATE base_client
+        SET first_name = %s, last_name = %s, email = %s, phone = %s
+            WHERE id_client = %s;""", (first_name, last_name, email, phone, id_client))
+    print('Client has changed successfully!')
 
 
 def delete_phone(conn, id_client):
     conn.execute("""DELETE FROM phone_client WHERE id_client = %s""", (id_client))
+    print('Phone has deleted successfully!')
 
 
 def delete_client(conn, id_client):
     conn.execute("""DELETE FROM base_client WHERE id_client = %s""", (id_client))
+    print('Client has deleted successfully!')
 
 
-def find_client(conn):
-    conn.execute("""SELECT id_client, first_name, last_name, email FROM base_client WHERE phone = '1223433'""")
-    print(conn.fetchall())
+def find_client(conn, first_name: str=None, last_name: str=None, email: str=None, phone: str=None):
+    conn.execute("""SELECT id_client, first_name, last_name, email FROM base_client
+                        WHERE first_name=%s;""",(first_name,))
+    if first_name != '':
+        print(conn.fetchall())
+    conn.execute("""SELECT id_client, first_name, last_name, email FROM base_client
+                            WHERE last_name=%s;""", (last_name,))
+    if last_name != '':
+        print(conn.fetchall())
+    conn.execute("""SELECT id_client, first_name, last_name, email FROM base_client
+                                WHERE email=%s;""", (email,))
+    if email != '':
+        print(conn.fetchall())
+    conn.execute("""SELECT id_client, first_name, last_name, email FROM base_client
+                                WHERE phone=%s;""", (phone,))
+    if phone != '':
+        print(conn.fetchall())
 
 
 if __name__ == "__main__":
     with psycopg2.connect(database="client_db", user="postgres", password="") as conn:
-        with conn.cursor() as cur: #  все запросы теперь можно внести сюда
-            create_db_client(conn) #  создаем таблицу
-            add_client(cur, 'Joseph', 'Iron', 'iron_jo@gmail.com', '911') #  добавляем клиента
-            add_phone(cur, '1', '112') # добавляем номер
-            change_client_fist_name(cur, 1, 'Bobby') # меняем имя клиента
-            change_client_last_name(cur, 1, 'Dex') #меняем фамилию клиента
-            change_client_email(cur, 1, 'Dexter@gmail.com') # меняем почту клиента
-            change_client_phone(cur, 1, '1223433') # меняем телефон клиента
-            delete_phone(cur, '1') # удаляем телефон
-            delete_client(cur, '1') # удаляем клиента
-            find_client(cur) # находим клиента
-            conn.commit() # коммит достаточно будет указать один раз
-
+        with conn.cursor() as cur:
+            create_db_client(conn)
+            add_client(cur, first_name='', last_name='', email='', phone='')
+            add_phone(cur, id_client='', phone_number='')
+            change_client(cur, id_client='', first_name='', last_name='', email='', phone='')
+            delete_phone(cur, id_client='')
+            delete_client(cur, id_client='')
+            find_client(cur, first_name='', last_name='', email='', phone='')
 conn.close()
